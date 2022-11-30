@@ -1,5 +1,5 @@
-import { rsort } from 'semver';
 import { pool } from '../db.js';
+import { validationResult } from 'express-validator'
 
 export const getAllUser = async (req, res) => {
     const {rows} = await pool.query('SELECT * FROM users')
@@ -21,8 +21,8 @@ export const getOneUser = async (req, res) => {
         }
        
     }catch (err) {
-        
         console.log(err.stack)
+
     return res.status(404).json({msg: ` ${id} is not valid`})
     }
 }
@@ -31,6 +31,10 @@ export const getOneUser = async (req, res) => {
 
 
 export const createSingleUser = async (req, res) => {
+   const errors = validationResult(req);
+   if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+  }
   const {firstname, lastname} = req.body;
   const query = 'INSERT INTO users (firstname, lastname) VALUES ($1,$2)';
   const values = [firstname, lastname];
@@ -46,22 +50,36 @@ export const createSingleUser = async (req, res) => {
 
 
 export const updateOneUser = async (req, res) => {
+
     const { id } = req.params;
     const { firstname, lastname } = req.body;
     const myQuery = 'UPDATE users SET firstname=$1, lastname=$2 WHERE id=$3 RETURNING *';
     const myValues = [firstname, lastname, id];
     
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
     
+    const { rows } = await pool.query('SELECT * FROM users WHERE id=$1;', [id]);
+  
+    if(rows.length >=1 ){
     try { 
         const result = await pool.query(myQuery, myValues)
-        // console.log(result)
+        console.log(result)
 
         return res.status(200).json({msg: `user mit id ${id} wurde erfolgreich aktulisiert`}) 
     }
     catch(err){
         console.log(err.stack)
+        res.status(500).json({msg: 'connection fehlt'})
     }
     res.send('user update')
+    }
+    else {
+       return res.status(404).json({msg: `user mit id ${id} ist nicht da`}) 
+    }
+   
     // res.status(200).send(" updateOneUser ")
     
 }
@@ -71,16 +89,21 @@ export const deleteOneUser = async(req, res) => {
   const {id} = req.params;
   const myQuery = 'DELETE FROM users WHERE id=$1';
   const myValue = [id];
-  try {
-    const {rows} = await pool.query(myQuery, myValue)
-    return res.status(404).json({msf: `user mit ${id} wurde gelöscht`})
-  } catch (err){
-    console.log(err.stack)
+
+  const { rows } = await pool.query('SELECT * FROM users WHERE id=$1;', [id]);
+
+  if (rows.length >= 1) { 
+    try {
+      const {rows} = await pool.query(myQuery, myValue)
+      return res.status(200).json({msg: `user mit ${id} wurde gelöscht`})
+    } catch (err){
+      console.log(err.stack)
+      res.status(500).json({msg: 'connection fehlt'})
+    }
+    // res.send('single user deleted')
   }
-  res.send('single user deleted')
-    
+  else {
+    return res.status(404).json({msg: `user mit id ${id} ist nicht da`})
+  }
 }
-
-
-
 
