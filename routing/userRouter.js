@@ -14,7 +14,7 @@ userRouter
 userRouter
 .route("/users/:id")
 .get(getOneUser)
-.put(body('firstname').isLength({min: 1}), body('lastname').isLength({min: 1}),checkUserId, checkUserUpdate, updateOneUser)
+.put(body('firstname').isLength({min: 1}), body('lastname').isLength({min: 1}),checkUserId,checkUser,checkUserUpdate, updateOneUser)
 .delete(checkUserId, deleteOneUser)
 
 export default userRouter
