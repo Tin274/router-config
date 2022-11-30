@@ -3,10 +3,12 @@ import { getAllUser, createSingleUser, getOneUser,updateOneUser,deleteOneUser } 
 
 const userRouter = Router();
 
+import {body} from 'express-validator';
+
 userRouter
 .route('/users')
 .get(getAllUser)
-.post(createSingleUser)
+.post(body('firstname').isLength({min: 1}), body('lastname').isLength({min: 1}), createSingleUser)
 
 userRouter
 .route("/users/:id")
