@@ -4,9 +4,8 @@ import { validationResult } from 'express-validator'
 export const getAllUser = async (req, res) => {
     const {rows} = await pool.query('SELECT * FROM users')
     res.json (rows)
-    // res.status(200).send(" getAllUser ")
-    
 }
+
 
 export const getOneUser = async (req, res) => {
     const { id } = req.params;
@@ -23,11 +22,9 @@ export const getOneUser = async (req, res) => {
     }catch (err) {
         console.log(err.stack)
 
-    return res.status(404).json({msg: ` ${id} is not valid`})
+    return res.status(404).json({msg: `${id} is not valid`})
     }
 }
-
-
 
 
 export const createSingleUser = async (req, res) => {
@@ -60,10 +57,7 @@ export const updateOneUser = async (req, res) => {
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
-    
-    const { rows } = await pool.query('SELECT * FROM users WHERE id=$1;', [id]);
   
-    if(rows.length >=1 ){
     try { 
         const result = await pool.query(myQuery, myValues)
         console.log(result)
@@ -73,16 +67,9 @@ export const updateOneUser = async (req, res) => {
     catch(err){
         console.log(err.stack)
         res.status(500).json({msg: 'connection fehlt'})
-    }
-    res.send('user update')
-    }
-    else {
-       return res.status(404).json({msg: `user mit id ${id} ist nicht da`}) 
-    }
-   
-    // res.status(200).send(" updateOneUser ")
-    
+    } 
 }
+
 
 export const deleteOneUser = async(req, res) => {
     
@@ -90,9 +77,6 @@ export const deleteOneUser = async(req, res) => {
   const myQuery = 'DELETE FROM users WHERE id=$1';
   const myValue = [id];
 
-  const { rows } = await pool.query('SELECT * FROM users WHERE id=$1;', [id]);
-
-  if (rows.length >= 1) { 
     try {
       const {rows} = await pool.query(myQuery, myValue)
       return res.status(200).json({msg: `user mit ${id} wurde gelöscht`})
@@ -100,10 +84,5 @@ export const deleteOneUser = async(req, res) => {
       console.log(err.stack)
       res.status(500).json({msg: 'connection fehlt'})
     }
-    // res.send('single user deleted')
-  }
-  else {
-    return res.status(404).json({msg: `user mit id ${id} ist nicht da`})
-  }
 }
 
